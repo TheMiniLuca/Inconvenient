@@ -1,0 +1,7 @@
+main: com.gmail.theminiluca.inconvenient.survival.Inconvenient
+name: inconvenient-survival
+version: '${version}'
+api-version: 1.21
+commands:
+  debug:
+    description: ''
