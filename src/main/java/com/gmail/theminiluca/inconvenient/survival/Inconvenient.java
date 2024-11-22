@@ -1,30 +1,27 @@
 package com.gmail.theminiluca.inconvenient.survival;
 
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minecraft.server.commands.DebugCommand;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +93,8 @@ public class Inconvenient extends JavaPlugin implements Listener {
         loadMapFromWorld(world);
         if (correct.isEmpty()) {
             List<Material> materialList = new ArrayList<>(Arrays.stream(Material.values()).filter(material -> material.isBlock()
+                    && !material.isAir()
+                    && material.getCreativeCategory() != null
                     && !(material.getHardness() < 0) && !(material.equals(Material.LAVA) || material.equals(Material.WATER))).toList());
             Map<Material, Integer> correctMaterials = new HashMap<>();
             for (int i = 1; i < inventory.getContents().length; i++) {
@@ -130,12 +129,34 @@ public class Inconvenient extends JavaPlugin implements Listener {
             @Override
             public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
                 if (!(commandSender instanceof Player player)) return false;
+//                placeBlocksAroundPlayer(player, correct.keySet());
                 Inventory inventory = Bukkit.createInventory(null, 9 * 6, Component.text("DEBUG", NamedTextColor.RED));
                 inventory.setContents(Inconvenient.inventory.getContents());
                 player.openInventory(inventory);
                 return false;
             }
         });
+        getCommand("debug1").setExecutor(new CommandExecutor() {
+            @Override
+            public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
+                if (!(commandSender instanceof Player player)) return false;
+                placeBlocksAroundPlayer(player, correct.keySet());
+//                Inventory inventory = Bukkit.createInventory(null, 9 * 6, Component.text("DEBUG", NamedTextColor.RED));
+//                inventory.setContents(Inconvenient.inventory.getContents());
+//                player.openInventory(inventory);
+                return false;
+            }
+        });
+
+    }
+
+    public void placeBlocksAroundPlayer(Player player, Set<Material> materials) {
+        List<Material> materialList = new ArrayList<>(materials);
+        for (int x = 0; x < materials.size(); x++) {
+            Location loc = player.getLocation().clone().add(x, 0, 0);
+            loc.getBlock().setType(materialList.get(x));
+            loc.add(0, -1, 0).getBlock().setType(Material.STONE);
+        }
 
     }
 
@@ -149,7 +170,9 @@ public class Inconvenient extends JavaPlugin implements Listener {
         materials.add(material);
         if (correct.containsKey(material)) {
             inventory.setItem(correct.get(material), new ItemStack(Material.GOLDEN_APPLE));
-            player.getInventory().setContents(inventory.getContents());
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                p.getInventory().setContents(inventory.getContents());
+            }
             spawnRandomFirework(player.getLocation());
             Bukkit.broadcast(Component.text(player.getName(), NamedTextColor.RED).append(Component.text("님이 ", NamedTextColor.WHITE))
                     .append(Component.translatable(material.translationKey(), NamedTextColor.GOLD)).append(Component.text(" 블럭을 파괴하여 ", NamedTextColor.WHITE))
@@ -171,7 +194,7 @@ public class Inconvenient extends JavaPlugin implements Listener {
                 .build();
 
         meta.addEffect(effect);
-        meta.setPower(0);  // 폭죽의 높이 (1~2)
+        meta.setPower(1);  // 폭죽의 높이 (1~2)
         firework.setFireworkMeta(meta);
     }
 
@@ -186,8 +209,8 @@ public class Inconvenient extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         getLogger().info(Arrays.toString(inventory.getContents()) + "<-- inventory");
         getLogger().info(inventory.isEmpty() + "<-- empty");
-        inventory.setContents(player.getInventory().getContents());
         if (inventory.isEmpty()) {
+            inventory.setContents(player.getInventory().getContents());
             for (Map.Entry<Material, Integer> entry : correct.entrySet()) {
                 if (!materials.contains(entry.getKey())) {
                     inventory.setItem(entry.getValue(), new ItemStack(Material.BARRIER));
@@ -203,21 +226,26 @@ public class Inconvenient extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         event.getDrops().clear();
         event.setKeepInventory(true);
-        for (int i = 0; i < inventory.getContents().length; i++) {
-            ItemStack stack = inventory.getContents()[i];
-            if (stack == null || stack.getType().equals(Material.BARRIER)) continue;
-            stack = stack.clone();
-            inventory.setItem(i, new ItemStack(Material.AIR));
-            player.getWorld().dropItemNaturally(player.getLocation(), stack);
+//        for (int i = 0; i < inventory.getContents().length; i++) {
+//            ItemStack stack = inventory.getContents()[i];
+//            if (stack == null || stack.getType().equals(Material.BARRIER)) continue;
+//            stack = stack.clone();
+//            inventory.setItem(i, new ItemStack(Material.AIR));
+//            player.getWorld().dropItemNaturally(player.getLocation(), stack);
+//        }
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.getInventory().setContents(inventory.getContents());
         }
-        player.getInventory().setContents(inventory.getContents());
+
     }
 
     @EventHandler
     public void onInventoryClick(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
         if (event.getMainHandItem().getType() == Material.BARRIER
-                || event.getOffHandItem().getType() == Material.BARRIER) event.setCancelled(true);
+                || event.getOffHandItem().getType() == Material.BARRIER) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler

@@ -28,7 +28,7 @@ public class WorldData {
         }
 
         // 마지막 쉼표 제거
-        if (serializedMap.length() > 0) {
+        if (!serializedMap.isEmpty()) {
             serializedMap.setLength(serializedMap.length() - 1);
         }
 
@@ -76,7 +76,7 @@ public class WorldData {
         }
 
         // 콤마로 끝나는 것을 방지
-        if (serializedMaterials.length() > 0) {
+        if (!serializedMaterials.isEmpty()) {
             serializedMaterials.setLength(serializedMaterials.length() - 1);
         }
 

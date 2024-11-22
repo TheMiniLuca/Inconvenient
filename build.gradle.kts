@@ -34,9 +34,7 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.4.0")
-    compileOnly("ac.grim.grimac:grimac:2.3.67")
+    paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
     // paperweight.foliaDevBundle("1.21-R0.1-SNAPSHOT")
     // paperweight.devBundle("com.example.paperfork", "1.21-R0.1-SNAPSHOT")
 }
@@ -52,7 +50,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.1")
+        minecraftVersion("1.21.3")
     }
     // Only relevant when going with option 2 above
     reobfJar {
