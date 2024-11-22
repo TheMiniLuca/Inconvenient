@@ -5,9 +5,9 @@ plugins {
 
 }
 
-group = "com.gmail.theminiluca.inconventient.survival"
+group = "com.gmail.theminiluca.inconvenient.survival"
 version = "1.0.0-SNAPSHOT"
-description = "inconventient-survival"
+description = "inconvenient-survival"
 
 java {
     // Configure the java toolchain. This allows gradle to auto-provision JDK 21 on systems that only have JDK 11 installed for example.
@@ -35,6 +35,9 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.6.0")
+    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
     // paperweight.foliaDevBundle("1.21-R0.1-SNAPSHOT")
     // paperweight.devBundle("com.example.paperfork", "1.21-R0.1-SNAPSHOT")
 }
@@ -50,18 +53,19 @@ tasks {
     }
 
     runServer {
+
         minecraftVersion("1.21.3")
     }
     // Only relevant when going with option 2 above
     reobfJar {
         // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
         // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-        outputJar = layout.buildDirectory.file("C:/Users/themi/Desktop/lastest/plugins/update/${project.name}-${project.version}.jar")
+        outputJar = layout.buildDirectory.file("C:/Users/themi/Desktop/lastest/plugins/update/${project.description}-${project.version}.jar")
     }
 }
 
 tasks.named<Copy>("processResources") {
-    val props = mapOf("version" to project.version.toString())
+    val props = mapOf("version" to project.version.toString(), "name" to project.description, "group" to project.group, "main" to project.name)
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {

@@ -1,7 +1,8 @@
-main: com.gmail.theminiluca.inconvenient.survival.Inconvenient
-name: inconvenient-survival
+name: '${name}'
+main: '${group}.${main}'
 version: '${version}'
 api-version: 1.21
+
 commands:
   debug:
     description: ''
